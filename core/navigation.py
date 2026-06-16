@@ -6,7 +6,7 @@ from modules.rural.page import render_rural_page
 
 def render_navigation(user, role):
     st.sidebar.title("Recovery Dashboard")
-    st.sidebar.caption(f"Signed in as: {^(user or {}^).get('email', 'Guest')}")
+    st.sidebar.caption(f"Signed in as: {(user or {}).get('email', 'Guest')}")
     st.sidebar.caption(f"Role: {role}")
 
     if role == "public":
