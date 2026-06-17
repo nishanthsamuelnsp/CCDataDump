@@ -1,46 +1,50 @@
 import streamlit as st
 
+from core.auth import get_current_user, get_user_role
+from modules.summary.page import render_summary_page
+from modules.dwc.page import render_dwc_page
+from modules.wwc.page import render_wwc_page
+from modules.rural.page import render_rural_page
+
 st.set_page_config(page_title="Recovery Dashboard", layout="wide")
 
-summary_page = st.Page("modules/summary/page.py", title="Summary", icon="🏠", default=True)
-dwc_page = st.Page("modules/dwc/page.py", title="DWC", icon="📊")
-wwc_page = st.Page("modules/wwc/page.py", title="WWC", icon="📈")
-rural_page = st.Page("modules/rural/page.py", title="Rural", icon="🌾")
+user = get_current_user()
+role = get_user_role(user)
 
-
-def login_screen():
-    st.title("Recovery Dashboard")
-    st.write("Please sign in with Google to continue.")
-    if st.button("Sign in with Google"):
-        st.login()
+if role == "public":
+    render_summary_page(public_view=True)
     st.stop()
 
+summary_page = st.Page(
+    lambda: render_summary_page(public_view=False),
+    title="Summary",
+    url_path="summary",
+    default=True,
+)
 
-if not st.user.is_logged_in:
-    login_screen()
+dwc_page = st.Page(
+    render_dwc_page,
+    title="DWC",
+    url_path="dwc",
+)
 
-email = st.user.email
-admin_emails = set(st.secrets["access"]["admin_emails"])
-is_admin = email in admin_emails
+wwc_page = st.Page(
+    render_wwc_page,
+    title="WWC",
+    url_path="wwc",
+)
 
-with st.sidebar:
-    st.caption(f"Signed in as: {email}")
-    st.caption("Role: Admin" if is_admin else "Role: Public")
-    if st.button("Log out"):
-        st.logout()
+rural_page = st.Page(
+    render_rural_page,
+    title="Rural",
+    url_path="rural",
+)
 
-if is_admin:
-    pg = st.navigation(
-        {
-            "Home": [summary_page],
-            "Operations": [dwc_page, wwc_page, rural_page],
-        }
-    )
-else:
-    pg = st.navigation(
-        {
-            "Home": [summary_page],
-        }
-    )
+pg = st.navigation(
+    {
+        "Home": [summary_page],
+        "Operations": [dwc_page, wwc_page, rural_page],
+    }
+)
 
 pg.run()
