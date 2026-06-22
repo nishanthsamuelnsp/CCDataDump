@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from core.auth import get_current_user, get_user_role, logout_user
+from core.auth import init_session_auth, logout_user
 from modules.summary.page import render_summary_page
 from modules.dwc.page import render_dwc_entry_page
 from modules.wwc.page import render_wwc_page
@@ -10,22 +10,8 @@ from modules.rural.page import render_rural_page
 
 st.set_page_config(page_title="Recovery Dashboard", layout="wide")
 
-# ── Session state defaults ──────────────────────────────────────────────────
-if "authenticated" not in st.session_state:
-    st.session_state["authenticated"] = False
-if "role" not in st.session_state:
-    st.session_state["role"] = None
-if "username" not in st.session_state:
-    st.session_state["username"] = None
-
-# ── Resolve current user (only if not already in session) ──────────────────
-if not st.session_state["authenticated"]:
-    user = get_current_user()
-    role = get_user_role(user)
-    if user and role:
-        st.session_state["authenticated"] = True
-        st.session_state["role"] = role
-        st.session_state["username"] = getattr(user, "email", str(user))
+# ── Bootstrap auth (safe to call on every rerun) ────────────────────────────
+init_session_auth()
 
 role = st.session_state["role"]
 
@@ -34,32 +20,27 @@ with st.sidebar:
     if st.session_state["authenticated"] and role == "admin":
         st.markdown(
             f"""
-            <div style='padding: 0.5rem 0; border-bottom: 1px solid #e0e0e0; margin-bottom: 0.75rem;'>
-                <small style='color: grey;'>Signed in as</small><br>
-                <strong>{st.session_state['username']}</strong>
+            <div style='padding:0.5rem 0 0.75rem; border-bottom:1px solid rgba(0,0,0,0.1); margin-bottom:0.75rem;'>
+                <div style='font-size:0.75rem; color:grey; margin-bottom:2px;'>Signed in as</div>
+                <div style='font-weight:600; font-size:0.9rem; word-break:break-all;'>{st.session_state['username']}</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
         if st.button("Sign out", key="signout_btn", use_container_width=True):
             logout_user()
-            st.session_state["authenticated"] = False
-            st.session_state["role"] = None
-            st.session_state["username"] = None
             st.rerun()
     else:
         st.markdown(
-            "<small style='color: grey;'>Viewing as public</small>",
+            "<div style='font-size:0.8rem; color:grey; padding:0.4rem 0;'>Viewing as public</div>",
             unsafe_allow_html=True,
         )
 
 # ── Route ───────────────────────────────────────────────────────────────────
 if role != "admin":
-    # Public: summary only, no navigation chrome
     render_summary_page(public_view=True)
     st.stop()
 
-# Admin: full navigation
 summary_page = st.Page(
     lambda: render_summary_page(public_view=False),
     title="Summary",
