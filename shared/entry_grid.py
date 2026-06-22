@@ -1,4 +1,7 @@
+# shared/entry_grid.py
+
 from datetime import date, datetime
+from decimal import Decimal
 
 import streamlit as st
 
@@ -11,6 +14,31 @@ def _to_iso(d):
     if hasattr(d, "isoformat"):
         return d.isoformat()
     return str(d)
+
+
+def _safe_scalar(value):
+    """Coerce any DB/numpy/Decimal value to a plain Python str-safe type."""
+    if value is None:
+        return None
+    if isinstance(value, Decimal):
+        f = float(value)
+        return int(f) if f == int(f) else f
+    if hasattr(value, "item"):          # numpy scalar (int64, float64, etc.)
+        return value.item()
+    if isinstance(value, (int, float, str, bool)):
+        return value
+    # fallback — cast to float if it looks numeric, else str
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return str(value)
+
+
+def _to_display_str(value):
+    """Convert a cell value to a clean string for text_input display."""
+    if value is None:
+        return ""
+    return str(_safe_scalar(value))
 
 
 def get_display_label(field):
@@ -36,18 +64,20 @@ def _initial_cell_value(module, section, record_date, field):
     if record_date:
         existing = get_record(module, section, record_date)
         if existing and field["key"] in existing:
-            return existing[field["key"]]
-    return field.get("default")
+            # Always coerce DB value to plain Python type on the way out
+            return _safe_scalar(existing[field["key"]])
+    default = field.get("default")
+    return _safe_scalar(default)
 
 
 def render_entry_grid(module, section, section_config):
     grid_key = f"{module}_{section}_anchor_date"
-    if grid_key not in st.session_state:
-        st.session_state[grid_key] = date.today()
 
+    # Fix: do NOT pre-set session_state for a widget key —
+    # pass value= directly to date_input instead
     anchor_date = st.date_input(
         "Anchor date",
-        value=st.session_state[grid_key],
+        value=st.session_state.get(grid_key, date.today()),
         key=grid_key,
     )
     dates = resolve_dates(module, section, anchor_date)
@@ -69,12 +99,19 @@ def render_entry_grid(module, section, section_config):
                 row[idx + 1].write("-")
                 continue
             cell_key = f"{module}_{section}_{record_date}_{field['key']}"
-            initial = _initial_cell_value(module, section, record_date, field)
+
+            # Only fetch initial value if not already in session state
             if cell_key not in st.session_state:
-                st.session_state[cell_key] = initial
+                st.session_state[cell_key] = _initial_cell_value(
+                    module, section, record_date, field
+                )
+
+            # Always convert to safe string for widget value=
+            display_val = _to_display_str(st.session_state[cell_key])
+
             values_by_date[record_date][field["key"]] = row[idx + 1].text_input(
                 label=field["label"],
-                value="" if st.session_state[cell_key] is None else str(st.session_state[cell_key]),
+                value=display_val,
                 key=cell_key,
                 label_visibility="collapsed",
             )
