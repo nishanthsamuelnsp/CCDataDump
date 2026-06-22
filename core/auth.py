@@ -12,6 +12,22 @@ USERINFO_ENDPOINT = "https://www.googleapis.com/oauth2/v3/userinfo"
 SCOPE = "openid email profile"
 REDIRECT_URI = f"{APP_URL}/oauth2callback"
 
+def get_authorization_url():
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        st.error(
+            "⚠️ OAuth not configured. "
+            "Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and APP_URL in your Streamlit secrets."
+        )
+        st.stop()
+
+    oauth = _make_oauth_session()
+    uri, state = oauth.create_authorization_url(
+        AUTHORIZATION_ENDPOINT,
+        access_type="online",
+    )
+    st.session_state["oauth_state"] = state
+    return uri
+
 
 def _make_oauth_session():
     return OAuth2Session(
@@ -22,14 +38,6 @@ def _make_oauth_session():
     )
 
 
-def get_authorization_url():
-    oauth = _make_oauth_session()
-    uri, state = oauth.create_authorization_url(
-        AUTHORIZATION_ENDPOINT,
-        access_type="online",
-    )
-    st.session_state["oauth_state"] = state
-    return uri
 
 
 def handle_oauth_callback():
