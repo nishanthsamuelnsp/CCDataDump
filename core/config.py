@@ -2,17 +2,22 @@
 
 import streamlit as st
 
-# Admin access list
-ADMIN_EMAILS = set(st.secrets.get("ADMIN_EMAILS", "").split(","))
 
-# Google OAuth credentials — set in .streamlit/secrets.toml
-GOOGLE_CLIENT_ID = st.secrets.get("GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = st.secrets.get("GOOGLE_CLIENT_SECRET", "")
+def _secret(key: str, default: str = "") -> str:
+    """Safely read a Streamlit secret by key."""
+    try:
+        return st.secrets[key]
+    except (KeyError, FileNotFoundError):
+        return default
 
-# Your deployed app URL (no trailing slash)
-# e.g. https://ccdata.streamlit.app
-APP_URL = st.secrets.get("APP_URL", "http://localhost:8501")
 
-# DEV_MODE: set to false now, real OAuth is used
-DEV_MODE = False
+# Admin access — comma-separated emails in secrets
+_admin_raw = _secret("ADMIN_EMAILS", "")
+ADMIN_EMAILS = set(e.strip() for e in _admin_raw.split(",") if e.strip())
+
+GOOGLE_CLIENT_ID     = _secret("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = _secret("GOOGLE_CLIENT_SECRET")
+APP_URL              = _secret("APP_URL", "http://localhost:8501")
+
+DEV_MODE       = False
 DEV_USER_EMAIL = ""
