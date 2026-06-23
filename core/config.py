@@ -9,8 +9,7 @@ def _secret(key: str, default: str = "") -> str:
         return str(os.getenv(key, default)).strip()
 
 
-def _secret_emails(key: str) -> set:
-
+def _secret_emails(key: str) -> set[str]:
     try:
         value = st.secrets[key]
 
@@ -18,6 +17,7 @@ def _secret_emails(key: str) -> set:
             return {
                 str(x).strip().lower()
                 for x in value
+                if str(x).strip()
             }
 
         return {
@@ -27,9 +27,14 @@ def _secret_emails(key: str) -> set:
         }
 
     except Exception:
-        return set()
+        raw = os.getenv(key, "")
+
+        return {
+            x.strip().lower()
+            for x in raw.split(",")
+            if x.strip()
+        }
 
 
-ADMIN_EMAILS = _secret_emails(
-    "ADMIN_EMAILS"
-)
+ADMIN_EMAILS = _secret_emails("ADMIN_EMAILS")
+APP_URL = _secret("APP_URL")
