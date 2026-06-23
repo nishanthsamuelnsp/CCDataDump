@@ -1,12 +1,10 @@
-# app.py
-
 import streamlit as st
 
 from core.auth import (
-init_session_auth,
-render_login_button,
-logout_user,
-get_user_role,
+    init_session_auth,
+    render_login_button,
+    logout_user,
+    get_user_role,
 )
 
 from modules.summary.page import render_summary_page
@@ -14,146 +12,120 @@ from modules.dwc.page import render_dwc_entry_page
 from modules.wwc.page import render_wwc_page
 from modules.rural.page import render_rural_page
 
-st.set_page_config(
-page_title="Recovery Dashboard",
-layout="wide"
-)
+st.set_page_config(page_title="Recovery Dashboard", layout="wide")
 
-# ── Bootstrap ────────────────────────────────────────────────────────────────
-
+# Bootstrap
 init_session_auth()
 
 role = get_user_role()
 authenticated = st.session_state["authenticated"]
 
 # DEBUG
-
 st.sidebar.write("=== SESSION DEBUG ===")
 st.sidebar.write("AUTH:", authenticated)
 st.sidebar.write("ROLE:", role)
 st.sidebar.write("USER:", st.session_state.get("username"))
 
-# ── Sidebar ──────────────────────────────────────────────────────────────────
-
+# Sidebar
 with st.sidebar:
 
-```
-if authenticated:
+    if authenticated:
 
-    name = (
-        st.session_state.get("display_name")
-        or st.session_state.get("username")
-    )
+        name = (
+            st.session_state.get("display_name")
+            or st.session_state.get("username")
+        )
 
-    badge_color = "#2e7d32" if role == "admin" else "grey"
-    badge_label = (
-        "● Admin access"
-        if role == "admin"
-        else "● Public access"
-    )
+        badge_color = "#2e7d32" if role == "admin" else "grey"
+        badge_label = (
+            "● Admin access"
+            if role == "admin"
+            else "● Public access"
+        )
 
-    st.markdown(
-        f"""
-        <div style='padding:0.5rem 0 0.75rem 0;
-                    border-bottom:1px solid rgba(49,51,63,0.2);
-                    margin-bottom:0.75rem;'>
-
-            <div style='font-size:0.72rem;
-                        color:grey;
-                        margin-bottom:3px;'>
-                Signed in as
+        st.markdown(
+            f"""
+            <div style='padding:0.5rem 0 0.75rem 0;
+                        border-bottom:1px solid rgba(49,51,63,0.2);
+                        margin-bottom:0.75rem;'>
+                <div style='font-size:0.72rem; color:grey; margin-bottom:3px;'>
+                    Signed in as
+                </div>
+                <div style='font-weight:600; font-size:0.88rem; word-break:break-all;'>
+                    {name}
+                </div>
+                <div style='font-size:0.72rem; color:{badge_color}; margin-top:3px;'>
+                    {badge_label}
+                </div>
             </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-            <div style='font-weight:600;
-                        font-size:0.88rem;
-                        word-break:break-all;'>
-                {name}
-            </div>
+        if st.button(
+            "Sign out",
+            use_container_width=True,
+            key="signout_btn",
+        ):
+            logout_user()
+            st.rerun()
 
-            <div style='font-size:0.72rem;
-                        color:{badge_color};
-                        margin-top:3px;'>
-                {badge_label}
-            </div>
+    else:
 
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        st.markdown(
+            "<div style='font-size:0.78rem; color:grey; margin-bottom:0.5rem;'>"
+            "Sign in for admin access"
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
-    if st.button(
-        "Sign out",
-        use_container_width=True,
-        key="signout_btn",
-    ):
-        logout_user()
-        st.rerun()
+        just_logged_in = render_login_button()
 
-else:
+        if just_logged_in:
+            role = get_user_role()
+            st.rerun()
 
-    st.markdown(
-        "<div style='font-size:0.78rem; color:grey; "
-        "margin-bottom:0.5rem;'>"
-        "Sign in for admin access"
-        "</div>",
-        unsafe_allow_html=True,
-    )
-
-    just_logged_in = render_login_button()
-
-    if just_logged_in:
-        role = get_user_role()
-        st.rerun()
-```
-
-# ── Navigation ───────────────────────────────────────────────────────────────
-
+# Navigation
 summary_page = st.Page(
-lambda: render_summary_page(
-public_view=(role != "admin")
-),
-title="Summary",
-url_path="summary",
+    lambda: render_summary_page(public_view=(role != "admin")),
+    title="Summary",
+    url_path="summary",
 )
 
 if role == "admin":
 
-```
-dwc_page = st.Page(
-    render_dwc_entry_page,
-    title="DWC",
-    url_path="dwc",
-)
+    dwc_page = st.Page(
+        render_dwc_entry_page,
+        title="DWC",
+        url_path="dwc",
+    )
 
-wwc_page = st.Page(
-    render_wwc_page,
-    title="WWC",
-    url_path="wwc",
-)
+    wwc_page = st.Page(
+        render_wwc_page,
+        title="WWC",
+        url_path="wwc",
+    )
 
-rural_page = st.Page(
-    render_rural_page,
-    title="Rural",
-    url_path="rural",
-)
+    rural_page = st.Page(
+        render_rural_page,
+        title="Rural",
+        url_path="rural",
+    )
 
-nav = {
-    "Home": [summary_page],
-    "Operations": [
-        dwc_page,
-        wwc_page,
-        rural_page,
-    ],
-}
-```
+    nav = {
+        "Home": [summary_page],
+        "Operations": [
+            dwc_page,
+            wwc_page,
+            rural_page,
+        ],
+    }
 
 else:
 
-```
-nav = {
-    "Home": [summary_page]
-}
-```
+    nav = {
+        "Home": [summary_page]
+    }
 
 pg = st.navigation(nav)
 pg.run()
