@@ -143,6 +143,10 @@ def render_login_button() -> bool:
 
     redirect_uri = _get_redirect_uri()
     
+    # Debug: Show what redirect_uri is being used
+    st.write(f"DEBUG: Using redirect_uri = {repr(redirect_uri)}")
+    st.write(f"DEBUG: GOOGLE_CLIENT_ID = {GOOGLE_CLIENT_ID[:30]}...")
+    
     result = oauth2.authorize_button(
         name="Sign in with Google",
         redirect_uri=redirect_uri,
