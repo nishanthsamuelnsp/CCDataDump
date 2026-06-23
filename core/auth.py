@@ -9,7 +9,13 @@ AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN_URL     = "https://oauth2.googleapis.com/token"
 REVOKE_URL    = "https://oauth2.googleapis.com/revoke"
 SCOPE         = "openid email profile"
-REDIRECT_URI  = "https://ccdata.streamlit.app/oauth2callback"
+
+# Load from secrets — must match Google Cloud Console exactly
+def _get_redirect_uri() -> str:
+    try:
+        return st.secrets.get("redirect_uri", "https://ccdata.streamlit.app/oauth2callback").strip()
+    except:
+        return "https://ccdata.streamlit.app/oauth2callback"
 
 
 def _decode_id_token(token: str) -> dict:
@@ -135,9 +141,11 @@ def render_login_button() -> bool:
         revoke_token_endpoint=REVOKE_URL,
     )
 
+    redirect_uri = _get_redirect_uri()
+    
     result = oauth2.authorize_button(
         name="Sign in with Google",
-        redirect_uri=REDIRECT_URI,
+        redirect_uri=redirect_uri,
         scope=SCOPE,
         key="google_oauth_btn",
         extras_params={"prompt": "select_account", "access_type": "online"},
