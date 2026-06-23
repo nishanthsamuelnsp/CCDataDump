@@ -1,51 +1,41 @@
 import streamlit as st
 
-#from core.auth import (
- #   init_session_auth,
-  #  render_login_button,
-   # logout_user,
-    #get_user_role,
-#)
+from core.auth import (
+    init_session_auth,
+    render_login_button,
+    logout_user,
+    get_user_role,
+)
 
 from modules.summary.page import render_summary_page
 from modules.dwc.page import render_dwc_entry_page
 from modules.wwc.page import render_wwc_page
 from modules.rural.page import render_rural_page
-import streamlit_oauth
 
-st.write("STREAMLIT:", st.__version__)
-
-try:
-    st.write("STREAMLIT_OAUTH:", streamlit_oauth.__version__)
-except Exception:
-    st.write("STREAMLIT_OAUTH LOADED")
-
-st.set_page_config(page_title="Recovery Dashboard", layout="wide")
+st.set_page_config(
+    page_title="Recovery Dashboard",
+    layout="wide"
+)
 
 # Bootstrap
-#init_session_auth()
+init_session_auth()
 
-#role = get_user_role()
-#authenticated = st.session_state["authenticated"]
-# Bootstrap (TEMP TEST)
-
-role = "public"
-authenticated = False
-# DEBUG
-st.sidebar.write("=== SESSION DEBUG ===")
-st.sidebar.write("AUTH:", authenticated)
-st.sidebar.write("ROLE:", role)
-st.sidebar.write("USER:", st.session_state.get("username"))
+authenticated = st.user.is_logged_in
+role = get_user_role()
 
 # Sidebar
 with st.sidebar:
 
     if authenticated:
 
-        name = (
-            st.session_state.get("display_name")
-            or st.session_state.get("username")
-        )
+        try:
+            name = (
+                st.user.get("name")
+                or st.user.get("email")
+                or "User"
+            )
+        except Exception:
+            name = "User"
 
         badge_color = "#2e7d32" if role == "admin" else "grey"
         badge_label = (
@@ -59,15 +49,25 @@ with st.sidebar:
             <div style='padding:0.5rem 0 0.75rem 0;
                         border-bottom:1px solid rgba(49,51,63,0.2);
                         margin-bottom:0.75rem;'>
-                <div style='font-size:0.72rem; color:grey; margin-bottom:3px;'>
+
+                <div style='font-size:0.72rem;
+                            color:grey;
+                            margin-bottom:3px;'>
                     Signed in as
                 </div>
-                <div style='font-weight:600; font-size:0.88rem; word-break:break-all;'>
+
+                <div style='font-weight:600;
+                            font-size:0.88rem;
+                            word-break:break-all;'>
                     {name}
                 </div>
-                <div style='font-size:0.72rem; color:{badge_color}; margin-top:3px;'>
+
+                <div style='font-size:0.72rem;
+                            color:{badge_color};
+                            margin-top:3px;'>
                     {badge_label}
                 </div>
+
             </div>
             """,
             unsafe_allow_html=True,
@@ -75,7 +75,7 @@ with st.sidebar:
 
         if st.button(
             "Sign out",
-            use_container_width=True,
+            width="stretch",
             key="signout_btn",
         ):
             logout_user()
@@ -90,15 +90,13 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
-        just_logged_in = render_login_button()
-        #st.write("AUTH DISABLED FOR TEST")
-        if just_logged_in:
-            role = get_user_role()
-            st.rerun()
+        render_login_button()
 
 # Navigation
 summary_page = st.Page(
-    lambda: render_summary_page(public_view=(role != "admin")),
+    lambda: render_summary_page(
+        public_view=(role != "admin")
+    ),
     title="Summary",
     url_path="summary",
 )
