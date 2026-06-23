@@ -1,8 +1,12 @@
-# app.py
-
 import streamlit as st
 
-from core.auth import init_session_auth, render_login_button, logout_user, get_user_role
+from core.auth import (
+    init_session_auth,
+    validate_session,
+    render_login_button,
+    logout_user,
+    get_user_role,
+)
 from modules.summary.page import render_summary_page
 from modules.dwc.page import render_dwc_entry_page
 from modules.wwc.page import render_wwc_page
@@ -12,16 +16,19 @@ st.set_page_config(page_title="Recovery Dashboard", layout="wide")
 
 # ── Bootstrap ────────────────────────────────────────────────────────────────
 init_session_auth()
+validate_session()  # Check token validity and refresh if needed
 
-role          = get_user_role()
+role = get_user_role()
 authenticated = st.session_state["authenticated"]
 
 # ── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
     if authenticated:
-        name         = st.session_state.get("display_name") or st.session_state.get("username")
-        badge_color  = "#2e7d32" if role == "admin" else "grey"
-        badge_label  = "● Admin access" if role == "admin" else "● Public access"
+        # User is authenticated — show their info and logout
+        name = st.session_state.get("display_name") or st.session_state.get("username")
+        badge_color = "#2e7d32" if role == "admin" else "grey"
+        badge_label = "● Admin access" if role == "admin" else "● Public access"
+
         st.markdown(
             f"""
             <div style='padding:0.5rem 0 0.75rem 0;
@@ -34,17 +41,23 @@ with st.sidebar:
             """,
             unsafe_allow_html=True,
         )
+
         if st.button("Sign out", use_container_width=True, key="signout_btn"):
             logout_user()
             st.rerun()
+
     else:
+        # User is NOT authenticated — show login
         st.markdown(
             "<div style='font-size:0.78rem; color:grey; margin-bottom:0.5rem;'>"
             "Sign in for admin access</div>",
             unsafe_allow_html=True,
         )
+
         just_logged_in = render_login_button()
+
         if just_logged_in:
+            # User just completed OAuth flow
             role = get_user_role()
             st.rerun()
 
@@ -56,11 +69,11 @@ summary_page = st.Page(
 )
 
 if role == "admin":
-    dwc_page   = st.Page(render_dwc_entry_page, title="DWC",   url_path="dwc")
-    wwc_page   = st.Page(render_wwc_page,        title="WWC",   url_path="wwc")
-    rural_page = st.Page(render_rural_page,       title="Rural", url_path="rural")
+    dwc_page = st.Page(render_dwc_entry_page, title="DWC", url_path="dwc")
+    wwc_page = st.Page(render_wwc_page, title="WWC", url_path="wwc")
+    rural_page = st.Page(render_rural_page, title="Rural", url_path="rural")
     nav = {
-        "Home":       [summary_page],
+        "Home": [summary_page],
         "Operations": [dwc_page, wwc_page, rural_page],
     }
 else:
