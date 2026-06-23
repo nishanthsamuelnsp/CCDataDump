@@ -9,12 +9,16 @@ def _secret(key: str, default: str = "") -> str:
         return str(os.getenv(key, default)).strip()
 
 
-def _secret_emails(key: str) -> set[str]:
+def _secret_emails(key: str) -> set:
+
     try:
         value = st.secrets[key]
 
         if isinstance(value, (list, tuple)):
-            return {str(x).strip().lower() for x in value if str(x).strip()}
+            return {
+                str(x).strip().lower()
+                for x in value
+            }
 
         return {
             x.strip().lower()
@@ -23,20 +27,9 @@ def _secret_emails(key: str) -> set[str]:
         }
 
     except Exception:
-        raw = os.getenv(key, "")
-        return {
-            x.strip().lower()
-            for x in raw.split(",")
-            if x.strip()
-        }
+        return set()
 
 
-ADMIN_EMAILS = _secret_emails("ADMIN_EMAILS")
-
-GOOGLE_CLIENT_ID = _secret("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = _secret("GOOGLE_CLIENT_SECRET")
-
-APP_URL = _secret(
-    "APP_URL",
-    "https://ccdata.streamlit.app"
+ADMIN_EMAILS = _secret_emails(
+    "ADMIN_EMAILS"
 )
