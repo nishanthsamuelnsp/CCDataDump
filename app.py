@@ -2,12 +2,7 @@
 
 import streamlit as st
 
-from core.auth import (
-    init_session_auth,
-    handle_oauth_callback,
-    get_authorization_url,
-    logout_user,
-)
+from core.auth import init_session_auth, render_login_button, logout_user, get_user_role
 from modules.summary.page import render_summary_page
 from modules.dwc.page import render_dwc_entry_page
 from modules.wwc.page import render_wwc_page
@@ -15,19 +10,18 @@ from modules.rural.page import render_rural_page
 
 st.set_page_config(page_title="Recovery Dashboard", layout="wide")
 
-# ── Bootstrap + handle OAuth return ─────────────────────────────────────────
+# ── Bootstrap ────────────────────────────────────────────────────────────────
 init_session_auth()
-handle_oauth_callback()  # sets session state in-place, no rerun needed
 
-role          = st.session_state["role"]
+role          = get_user_role()
 authenticated = st.session_state["authenticated"]
 
 # ── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
     if authenticated:
-        name = st.session_state.get("display_name") or st.session_state.get("username")
-        badge_color = "#2e7d32" if role == "admin" else "grey"
-        badge_label = "● Admin access" if role == "admin" else "● Public access"
+        name         = st.session_state.get("display_name") or st.session_state.get("username")
+        badge_color  = "#2e7d32" if role == "admin" else "grey"
+        badge_label  = "● Admin access" if role == "admin" else "● Public access"
         st.markdown(
             f"""
             <div style='padding:0.5rem 0 0.75rem 0;
@@ -45,17 +39,13 @@ with st.sidebar:
             st.rerun()
     else:
         st.markdown(
-            "<div style='font-size:0.78rem; color:grey; margin-bottom:0.75rem;'>"
+            "<div style='font-size:0.78rem; color:grey; margin-bottom:0.5rem;'>"
             "Sign in for admin access</div>",
             unsafe_allow_html=True,
         )
-        auth_url = get_authorization_url()
-        st.link_button("Sign in with Google", auth_url, use_container_width=True)
-
-    if st.session_state.get("oauth_error"):
-        st.error(f"Login error: {st.session_state['oauth_error']}")
-        if st.button("Clear error", key="clear_err"):
-            st.session_state["oauth_error"] = None
+        just_logged_in = render_login_button()
+        if just_logged_in:
+            role = get_user_role()
             st.rerun()
 
 # ── Navigation ───────────────────────────────────────────────────────────────
