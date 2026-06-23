@@ -2,20 +2,23 @@ import base64
 import json
 import time
 import streamlit as st
-from streamlit_oauth import OAuth2Component
+from httpx_oauth.oauth2 import OAuth2Session
 from core.config import ADMIN_EMAILS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 
 AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
-TOKEN_URL     = "https://oauth2.googleapis.com/token"
-REVOKE_URL    = "https://oauth2.googleapis.com/revoke"
-SCOPE         = "openid email profile"
+TOKEN_URL = "https://oauth2.googleapis.com/token"
+SCOPE = "openid email profile"
 
-# Load from secrets — must match Google Cloud Console exactly
+
 def _get_redirect_uri() -> str:
+    """Load redirect_uri from secrets."""
     try:
-        return st.secrets.get("redirect_uri", "https://ccdata.streamlit.app/oauth2callback").strip()
+        uri = st.secrets.get("redirect_uri", "").strip()
+        if uri:
+            return uri
     except:
-        return "https://ccdata.streamlit.app/oauth2callback"
+        pass
+    return "https://ccdata.streamlit.app/oauth2callback"
 
 
 def _decode_id_token(token: str) -> dict:
@@ -76,8 +79,8 @@ def init_session_auth():
         "role": "public",
         "username": None,
         "display_name": None,
-        "token": None,  # Store full token object
-        "token_time": None,  # Track when token was set
+        "token": None,
+        "token_time": None,
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -85,30 +88,23 @@ def init_session_auth():
 
 
 def validate_session():
-    """
-    Validate current session and refresh token if needed.
-    Call this at the start of app.py after init_session_auth().
-    Returns True if session is valid, False if user needs to re-authenticate.
-    """
+    """Validate current session and refresh token if needed."""
     if not st.session_state.get("authenticated"):
-        return True  # Not authenticated is a valid state
+        return True
 
     token = st.session_state.get("token")
     if not token or "id_token" not in token:
         st.session_state["authenticated"] = False
         return False
 
-    # Check if token is expired
     if _is_token_expired(token.get("id_token", "")):
         refresh_token = token.get("refresh_token")
         if refresh_token:
-            # Try to refresh
             new_token = _refresh_access_token(refresh_token)
             if new_token:
                 st.session_state["token"] = new_token
                 st.session_state["token_time"] = time.time()
                 return True
-        # Token expired and can't refresh
         st.session_state["authenticated"] = False
         return False
 
@@ -117,71 +113,88 @@ def validate_session():
 
 def render_login_button() -> bool:
     """
-    Renders the Google OAuth button ONLY if not authenticated.
-    Populates session state on success.
-    Returns True if login just completed.
+    Render login UI with redirect link.
+    Returns True if user just authenticated.
     """
-    # Guard: Don't render if already authenticated
     if st.session_state.get("authenticated"):
         return False
 
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
-        st.error(
-            "OAuth not configured — check GOOGLE_CLIENT_ID and "
-            "GOOGLE_CLIENT_SECRET in Streamlit secrets."
-        )
+        st.error("OAuth not configured — check Streamlit secrets.")
         return False
-
-    oauth2 = OAuth2Component(
-        client_id=GOOGLE_CLIENT_ID,
-        client_secret=GOOGLE_CLIENT_SECRET,
-        authorize_endpoint=AUTHORIZE_URL,
-        token_endpoint=TOKEN_URL,
-        refresh_token_endpoint=TOKEN_URL,
-        revoke_token_endpoint=REVOKE_URL,
-    )
 
     redirect_uri = _get_redirect_uri()
     
-    # Debug: Show what redirect_uri is being used
-    st.write(f"DEBUG: Using redirect_uri = {repr(redirect_uri)}")
-    st.write(f"DEBUG: GOOGLE_CLIENT_ID = {GOOGLE_CLIENT_ID[:30]}...")
-    
-    result = oauth2.authorize_button(
-        name="Sign in with Google",
+    # Build OAuth authorization URL manually
+    oauth_session = OAuth2Session(
+        client_id=GOOGLE_CLIENT_ID,
+        client_secret=GOOGLE_CLIENT_SECRET,
         redirect_uri=redirect_uri,
-        scope=SCOPE,
-        key="google_oauth_btn",
-        extras_params={"prompt": "select_account", "access_type": "online"},
-        use_container_width=True,
-        icon="https://www.google.com/favicon.ico",
+        authorization_endpoint=AUTHORIZE_URL,
+        token_endpoint=TOKEN_URL,
+    )
+    
+    auth_url, state = oauth_session.create_authorization_url(
+        AUTHORIZE_URL,
+        scope=SCOPE.split(),
+        prompt="select_account",
+        access_type="online",
     )
 
-    if result and "token" in result:
-        try:
-            userinfo = _extract_userinfo(result["token"])
-            email = userinfo["email"]
-            name = userinfo["name"]
+    st.markdown(
+        f'<a href="{auth_url}" target="_self"><button style="width:100%; padding:0.5rem;">Sign in with Google</button></a>',
+        unsafe_allow_html=True,
+    )
 
-            # Store everything we need
-            st.session_state["token"] = result["token"]
-            st.session_state["token_time"] = time.time()
-            st.session_state["authenticated"] = True
-            st.session_state["username"] = email
-            st.session_state["display_name"] = name
-            st.session_state["role"] = "admin" if email in ADMIN_EMAILS else "public"
+    # Handle callback
+    query_params = st.query_params
+    if "code" in query_params:
+        code = query_params["code"]
+        state_param = query_params.get("state", "")
 
-            return True
+        if state_param == state:
+            try:
+                # Exchange code for token
+                import requests
+                token_response = requests.post(
+                    TOKEN_URL,
+                    data={
+                        "client_id": GOOGLE_CLIENT_ID,
+                        "client_secret": GOOGLE_CLIENT_SECRET,
+                        "code": code,
+                        "grant_type": "authorization_code",
+                        "redirect_uri": redirect_uri,
+                    },
+                    timeout=10,
+                )
 
-        except Exception as e:
-            st.error(f"Login error: {e}")
-            return False
+                if token_response.status_code == 200:
+                    token_data = token_response.json()
+                    userinfo = _extract_userinfo(token_data)
+                    email = userinfo["email"]
+                    name = userinfo["name"]
+
+                    st.session_state["token"] = token_data
+                    st.session_state["token_time"] = time.time()
+                    st.session_state["authenticated"] = True
+                    st.session_state["username"] = email
+                    st.session_state["display_name"] = name
+                    st.session_state["role"] = "admin" if email in ADMIN_EMAILS else "public"
+
+                    # Clear query params and rerun
+                    st.query_params.clear()
+                    st.rerun()
+                    return True
+                else:
+                    st.error(f"Token exchange failed: {token_response.text}")
+            except Exception as e:
+                st.error(f"Login error: {e}")
 
     return False
 
 
 def logout_user():
-    """Clear auth state. Call st.rerun() after."""
+    """Clear auth state."""
     st.session_state["authenticated"] = False
     st.session_state["role"] = "public"
     st.session_state["username"] = None
