@@ -29,7 +29,3 @@ def _secret_emails(key: str) -> set:
 ADMIN_EMAILS         = _secret_emails("ADMIN_EMAILS")
 GOOGLE_CLIENT_ID     = _secret("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = _secret("GOOGLE_CLIENT_SECRET")
-APP_URL              = _secret("APP_URL", "http://localhost:8501")
-
-DEV_MODE       = False
-DEV_USER_EMAIL = ""
