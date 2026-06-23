@@ -45,32 +45,10 @@ with st.sidebar:
         )
 
         st.markdown(
-            f"""
-            <div style='padding:0.5rem 0 0.75rem 0;
-                        border-bottom:1px solid rgba(49,51,63,0.2);
-                        margin-bottom:0.75rem;'>
-
-                <div style='font-size:0.72rem;
-                            color:grey;
-                            margin-bottom:3px;'>
-                    Signed in as
-                </div>
-
-                <div style='font-weight:600;
-                            font-size:0.88rem;
-                            word-break:break-all;'>
-                    {name}
-                </div>
-
-                <div style='font-size:0.72rem;
-                            color:{badge_color};
-                            margin-top:3px;'>
-                    {badge_label}
-                </div>
-
-            </div>
-            """,
+            "<b>TEST BOLD</b>",
             unsafe_allow_html=True,
+
+            
         )
 
         if st.button(
