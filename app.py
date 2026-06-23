@@ -11,6 +11,14 @@ from modules.summary.page import render_summary_page
 from modules.dwc.page import render_dwc_entry_page
 from modules.wwc.page import render_wwc_page
 from modules.rural.page import render_rural_page
+import streamlit_oauth
+
+st.write("STREAMLIT:", st.__version__)
+
+try:
+    st.write("STREAMLIT_OAUTH:", streamlit_oauth.__version__)
+except Exception:
+    st.write("STREAMLIT_OAUTH LOADED")
 
 st.set_page_config(page_title="Recovery Dashboard", layout="wide")
 
