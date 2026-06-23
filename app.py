@@ -16,7 +16,7 @@ st.set_page_config(page_title="Recovery Dashboard", layout="wide")
 
 # ── Bootstrap ────────────────────────────────────────────────────────────────
 init_session_auth()
-validate_session()  # Check token validity and refresh if needed
+validate_session()
 
 role = get_user_role()
 authenticated = st.session_state["authenticated"]
@@ -24,7 +24,6 @@ authenticated = st.session_state["authenticated"]
 # ── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
     if authenticated:
-        # User is authenticated — show their info and logout
         name = st.session_state.get("display_name") or st.session_state.get("username")
         badge_color = "#2e7d32" if role == "admin" else "grey"
         badge_label = "● Admin access" if role == "admin" else "● Public access"
@@ -47,18 +46,13 @@ with st.sidebar:
             st.rerun()
 
     else:
-        # User is NOT authenticated — show login
         st.markdown(
             "<div style='font-size:0.78rem; color:grey; margin-bottom:0.5rem;'>"
             "Sign in for admin access</div>",
             unsafe_allow_html=True,
         )
-
         just_logged_in = render_login_button()
-
         if just_logged_in:
-            # User just completed OAuth flow
-            role = get_user_role()
             st.rerun()
 
 # ── Navigation ───────────────────────────────────────────────────────────────
