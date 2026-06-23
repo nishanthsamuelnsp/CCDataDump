@@ -1,8 +1,10 @@
 import base64
 import json
 import time
+import secrets
 import streamlit as st
-from httpx_oauth.oauth2 import OAuth2Session
+import requests
+from urllib.parse import urlencode
 from core.config import ADMIN_EMAILS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 
 AUTHORIZE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -42,7 +44,6 @@ def _is_token_expired(id_token: str) -> bool:
 def _refresh_access_token(refresh_token: str) -> dict | None:
     """Attempt to refresh the access token using refresh_token."""
     try:
-        import requests
         response = requests.post(
             TOKEN_URL,
             data={
@@ -125,24 +126,28 @@ def render_login_button() -> bool:
 
     redirect_uri = _get_redirect_uri()
     
-    # Build OAuth authorization URL manually
-    oauth_session = OAuth2Session(
-        client_id=GOOGLE_CLIENT_ID,
-        client_secret=GOOGLE_CLIENT_SECRET,
-        redirect_uri=redirect_uri,
-        authorization_endpoint=AUTHORIZE_URL,
-        token_endpoint=TOKEN_URL,
-    )
+    # Generate state for CSRF protection
+    if "oauth_state" not in st.session_state:
+        st.session_state["oauth_state"] = secrets.token_urlsafe(32)
     
-    auth_url, state = oauth_session.create_authorization_url(
-        AUTHORIZE_URL,
-        scope=SCOPE.split(),
-        prompt="select_account",
-        access_type="online",
-    )
+    state = st.session_state["oauth_state"]
 
+    # Build OAuth authorization URL manually
+    auth_params = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "redirect_uri": redirect_uri,
+        "response_type": "code",
+        "scope": SCOPE,
+        "state": state,
+        "prompt": "select_account",
+        "access_type": "online",
+    }
+    
+    auth_url = f"{AUTHORIZE_URL}?{urlencode(auth_params)}"
+
+    # Render login button
     st.markdown(
-        f'<a href="{auth_url}" target="_self"><button style="width:100%; padding:0.5rem;">Sign in with Google</button></a>',
+        f'<a href="{auth_url}" target="_self"><button style="width:100%; padding:0.5rem; background-color:#1f77b4; color:white; border:none; border-radius:4px; font-size:16px; cursor:pointer;">Sign in with Google</button></a>',
         unsafe_allow_html=True,
     )
 
@@ -151,11 +156,11 @@ def render_login_button() -> bool:
     if "code" in query_params:
         code = query_params["code"]
         state_param = query_params.get("state", "")
+        stored_state = st.session_state.get("oauth_state", "")
 
-        if state_param == state:
+        if state_param == stored_state:
             try:
                 # Exchange code for token
-                import requests
                 token_response = requests.post(
                     TOKEN_URL,
                     data={
@@ -186,9 +191,12 @@ def render_login_button() -> bool:
                     st.rerun()
                     return True
                 else:
-                    st.error(f"Token exchange failed: {token_response.text}")
+                    st.error(f"Token exchange failed: {token_response.status_code}")
+                    st.error(f"Response: {token_response.text}")
             except Exception as e:
                 st.error(f"Login error: {e}")
+        else:
+            st.error("State mismatch - possible CSRF attack")
 
     return False
 
