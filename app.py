@@ -69,12 +69,7 @@ with st.sidebar:
 
         </div>
         """)
-        st.markdown(
-            "<b>TEST BOLD</b>",
-            unsafe_allow_html=True,
 
-            
-        )
 
         if st.button(
             "Sign out",
