@@ -1,20 +1,32 @@
 # core/config.py
 
+import os
 import streamlit as st
 
 
 def _secret(key: str, default: str = "") -> str:
-    """Safely read a Streamlit secret by key."""
     try:
-        return st.secrets[key]
-    except (KeyError, FileNotFoundError):
-        return default
+        val = st.secrets[key]
+        if val is not None:
+            return str(val).strip()
+    except (KeyError, AttributeError, FileNotFoundError):
+        pass
+    return str(os.environ.get(key, default)).strip()
 
 
-# Admin access — comma-separated emails in secrets
-_admin_raw = _secret("ADMIN_EMAILS", "")
-ADMIN_EMAILS = set(e.strip() for e in _admin_raw.split(",") if e.strip())
+def _secret_emails(key: str) -> set:
+    try:
+        val = st.secrets[key]
+        if isinstance(val, (list, tuple)):          # TOML array: ["a@b.com", "c@d.com"]
+            return set(e.strip() for e in val if str(e).strip())
+        return set(e.strip() for e in str(val).split(",") if e.strip())  # comma string
+    except (KeyError, AttributeError, FileNotFoundError):
+        pass
+    raw = os.environ.get(key, "")
+    return set(e.strip() for e in raw.split(",") if e.strip())
 
+
+ADMIN_EMAILS         = _secret_emails("ADMIN_EMAILS")
 GOOGLE_CLIENT_ID     = _secret("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = _secret("GOOGLE_CLIENT_SECRET")
 APP_URL              = _secret("APP_URL", "http://localhost:8501")
