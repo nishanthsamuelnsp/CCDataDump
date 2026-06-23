@@ -80,7 +80,7 @@ def render_login_button() -> bool:
         except Exception as e:
             st.error(f"Login error: {e}")
 
-    return True
+    return False
 
 
 def logout_user():
