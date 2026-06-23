@@ -17,9 +17,9 @@ def _secret(key: str, default: str = "") -> str:
 def _secret_emails(key: str) -> set:
     try:
         val = st.secrets[key]
-        if isinstance(val, (list, tuple)):          # TOML array: ["a@b.com", "c@d.com"]
+        if isinstance(val, (list, tuple)):
             return set(e.strip() for e in val if str(e).strip())
-        return set(e.strip() for e in str(val).split(",") if e.strip())  # comma string
+        return set(e.strip() for e in str(val).split(",") if e.strip())
     except (KeyError, AttributeError, FileNotFoundError):
         pass
     raw = os.environ.get(key, "")
