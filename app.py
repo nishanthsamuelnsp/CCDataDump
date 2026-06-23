@@ -90,8 +90,8 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
-        #just_logged_in = render_login_button()
-        st.write("AUTH DISABLED FOR TEST")
+        just_logged_in = render_login_button()
+        #st.write("AUTH DISABLED FOR TEST")
         if just_logged_in:
             role = get_user_role()
             st.rerun()
