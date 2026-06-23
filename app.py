@@ -76,10 +76,10 @@ with st.sidebar:
         if st.button(
             "Sign out",
             width="stretch",
-            key="signout_btn",
+            
         ):
-            logout_user()
-            st.rerun()
+            
+            st.logout()
 
     else:
 
