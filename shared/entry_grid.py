@@ -104,9 +104,8 @@ def render_entry_grid(module, section, section_config):
 
             # Only fetch initial value if not already in session state
             if cell_key not in st.session_state:
-                st.session_state[cell_key] = _initial_cell_value(
-                    module, section, record_date, field
-                )
+                initial = _initial_cell_value(module, section, record_date, field)
+                st.session_state[cell_key] = _to_display_str(initial)
 
             # Always convert to safe string for widget value=
             display_val = _to_display_str(st.session_state[cell_key])
