@@ -110,7 +110,7 @@ def render_entry_grid(module, section, section_config):
 
             # Always convert to safe string for widget value=
             display_val = _to_display_str(st.session_state[cell_key])
-            st.write("DEBUG", field["key"], type(display_val), repr(display_val))
+            st.write(f"DEBUG | field={field['key']} | value={display_val}")
 
             values_by_date[record_date][field["key"]] = row[idx + 1].text_input(
                 label=field["label"],
