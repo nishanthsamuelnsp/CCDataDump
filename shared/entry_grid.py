@@ -113,7 +113,7 @@ def render_entry_grid(module, section, section_config):
             st.write(f"DEBUG | field={field['key']} | value={display_val}")
 
             values_by_date[record_date][field["key"]] = row[idx + 1].text_input(
-                label=field["label"],
+                str(field.get("label", field["key"])),
                 value=display_val,
                 key=cell_key,
                 label_visibility="collapsed",
