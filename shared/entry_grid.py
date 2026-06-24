@@ -35,10 +35,12 @@ def _safe_scalar(value):
 
 
 def _to_display_str(value):
-    """Convert a cell value to a clean string for text_input display."""
     if value is None:
         return ""
-    return str(_safe_scalar(value))
+    try:
+        return str(value)
+    except Exception:
+        return ""
 
 
 def get_display_label(field):
@@ -108,6 +110,7 @@ def render_entry_grid(module, section, section_config):
 
             # Always convert to safe string for widget value=
             display_val = _to_display_str(st.session_state[cell_key])
+            st.write("DEBUG", field["key"], type(display_val), repr(display_val))
 
             values_by_date[record_date][field["key"]] = row[idx + 1].text_input(
                 label=field["label"],
