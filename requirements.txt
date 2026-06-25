@@ -2,3 +2,4 @@ streamlit-oauth
 Authlib
 httpx-oauth
 google-auth-oauthlib
+supabase
