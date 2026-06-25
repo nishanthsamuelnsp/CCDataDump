@@ -1,14 +1,20 @@
 import json
-from pathlib import Path
 from copy import deepcopy
+from pathlib import Path
+
+import streamlit as st
+from supabase import create_client
 
 from shared.defaults import get_defaults
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data" / "dummy"
 DEFAULTS_PATH = DATA_DIR / "defaults.json"
-RECORDS_PATH = DATA_DIR / "entry_records.json"
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Local defaults JSON
+# ──────────────────────────────────────────────────────────────────────────────
 
 def _ensure_dir():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -38,44 +44,107 @@ def _deep_merge(base, override):
     return merged
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Supabase records
+# Table: entry_records
+# Columns expected:
+#   module text
+#   section text
+#   record_date date
+#   values jsonb
+#   updated_by text (optional)
+# Unique key:
+#   (module, section, record_date)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _get_supabase():
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
+    return create_client(url, key)
+
+
+def _current_user_email():
+    return st.session_state.get("username")
+
+
 def load_records():
-    _ensure_dir()
-    if not RECORDS_PATH.exists():
-        return []
-    return json.loads(RECORDS_PATH.read_text())
+    """
+    Optional helper: fetch all entry_records.
+    Not used by the DWC entry grid directly, but kept for compatibility.
+    """
+    sb = _get_supabase()
+    resp = (
+        sb.table("entry_records")
+        .select("module, section, record_date, values, updated_by, created_at, updated_at")
+        .order("record_date", desc=True)
+        .execute()
+    )
+    return resp.data or []
 
 
 def save_record(module, section, record_date, values):
-    records = load_records()
-    updated = False
-    for row in records:
-        if row["module"] == module and row["section"] == section and row["date"] == record_date:
-            row["values"] = values
-            updated = True
-            break
-    if not updated:
-        records.append({
-            "module": module,
-            "section": section,
-            "date": record_date,
-            "values": values,
-        })
-    records.sort(key=lambda x: (x["module"], x["section"], x["date"]), reverse=True)
-    _ensure_dir()
-    RECORDS_PATH.write_text(json.dumps(records, indent=2))
+    """
+    Upsert one row into entry_records using (module, section, record_date).
+    record_date should be a YYYY-MM-DD string.
+    values should be a plain dict.
+    """
+    sb = _get_supabase()
+
+    payload = {
+        "module": module,
+        "section": section,
+        "record_date": str(record_date),
+        "values": values,
+        "updated_by": _current_user_email(),
+    }
+
+    (
+        sb.table("entry_records")
+        .upsert(
+            payload,
+            on_conflict="module,section,record_date",
+        )
+        .execute()
+    )
 
 
 def get_record(module, section, record_date):
-    for row in load_records():
-        if row["module"] == module and row["section"] == section and row["date"] == record_date:
-            return row["values"]
-    return None
+    """
+    Return the values dict for one module+section+date row, or None if missing.
+    """
+    sb = _get_supabase()
+
+    resp = (
+        sb.table("entry_records")
+        .select("values")
+        .eq("module", module)
+        .eq("section", section)
+        .eq("record_date", str(record_date))
+        .limit(1)
+        .execute()
+    )
+
+    rows = resp.data or []
+    if not rows:
+        return None
+
+    return rows[0].get("values")
 
 
 def get_available_dates(module, section):
-    dates = {
-        row["date"]
-        for row in load_records()
-        if row["module"] == module and row["section"] == section
-    }
-    return sorted(dates, reverse=True)
+    """
+    Return available record_date values for a module+section as descending YYYY-MM-DD strings.
+    """
+    sb = _get_supabase()
+
+    resp = (
+        sb.table("entry_records")
+        .select("record_date")
+        .eq("module", module)
+        .eq("section", section)
+        .order("record_date", desc=True)
+        .execute()
+    )
+
+    rows = resp.data or []
+    return [row["record_date"] for row in rows if row.get("record_date")]
