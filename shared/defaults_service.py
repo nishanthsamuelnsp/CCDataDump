@@ -46,7 +46,7 @@ def _deep_merge(base, override):
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Supabase records
-# Table: entry_records
+# Table: dwc_entry
 # Columns expected:
 #   module text
 #   section text
@@ -69,7 +69,7 @@ def _current_user_email():
 
 def load_records():
     """
-    Optional helper: fetch all entry_records.
+    Optional helper: fetch all dwc_entry.
     Not used by the DWC entry grid directly, but kept for compatibility.
     """
     sb = _get_supabase()
@@ -84,7 +84,7 @@ def load_records():
 
 def save_record(module, section, record_date, values):
     """
-    Upsert one row into entry_records using (module, section, record_date).
+    Upsert one row into dwc_entry using (module, section, record_date).
     record_date should be a YYYY-MM-DD string.
     values should be a plain dict.
     """
@@ -99,7 +99,7 @@ def save_record(module, section, record_date, values):
     }
 
     (
-        sb.table("entry_records")
+        sb.table("dwc_entry")
         .upsert(
             payload,
             on_conflict="module,section,record_date",
@@ -115,7 +115,7 @@ def get_record(module, section, record_date):
     sb = _get_supabase()
 
     resp = (
-        sb.table("entry_records")
+        sb.table("dwc_entry")
         .select("values")
         .eq("module", module)
         .eq("section", section)
@@ -138,7 +138,7 @@ def get_available_dates(module, section):
     sb = _get_supabase()
 
     resp = (
-        sb.table("entry_records")
+        sb.table("dwc_entry")
         .select("record_date")
         .eq("module", module)
         .eq("section", section)
