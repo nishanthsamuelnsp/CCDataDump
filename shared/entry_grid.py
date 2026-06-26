@@ -125,20 +125,54 @@ def render_entry_grid(module, section, section_config):
             )
 
 
-            values_by_date[record_date][field["key"]] = row[idx + 1].text_input(
-                str(field.get("label", field["key"])),
+            entered = row[idx + 1].text_input(
+                "",
                 value=display_val,
                 key=cell_key,
                 label_visibility="collapsed",
             )
+            
+            if entered.strip():
+                try:
+                    float(entered)
+                except ValueError:
+                    validation_errors.append(
+                        f"{record_date} → {field['label']}"
+                    )
+            
+            values_by_date[record_date][field["key"]] = entered
 
-    if st.button(f"Save {section_config['title']}", key=f"save_{module}_{section}"):
+    if st.button(
+        f"Save {section_config['title']}",
+        key=f"save_{module}_{section}",
+    ):
+    
         for record_date, payload in values_by_date.items():
+    
             cleaned = {}
+    
             for field in section_config["fields"]:
+    
                 raw = payload.get(field["key"], "")
-                cleaned[field["key"]] = None if raw == "" else _coerce_number(raw)
-            save_record(module, section, record_date, cleaned)
+    
+                try:
+                    cleaned[field["key"]] = _coerce_number(raw)
+    
+                except ValueError:
+    
+                    st.error(
+                        f"{field['label']} ({record_date}) must contain only numbers."
+                    )
+    
+                    st.stop()
+    
+            save_record(
+                module,
+                section,
+                record_date,
+                cleaned,
+            )
+    
         st.success(f"Saved {section_config['title']} records.")
 
 
