@@ -32,6 +32,18 @@ def _safe_scalar(value):
         return float(value)
     except (TypeError, ValueError):
         return str(value)
+def _validated_display_value(value):
+    """
+    Returns a string suitable for display in the cell.
+    None stays blank.
+    """
+    if value is None:
+        return ""
+
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+
+    return str(value)
 
 
 def _to_display_str(value):
@@ -92,7 +104,7 @@ def render_entry_grid(module, section, section_config):
         headers[i + 1].markdown(f"**{dates[i] or 'Empty'}**")
 
     values_by_date = {d: {} for d in dates if d}
-
+    validation_errors = []
     for field in section_config["fields"]:
         row = st.columns([2, 1, 1, 1])
         row[0].write(get_display_label(field))
@@ -108,7 +120,9 @@ def render_entry_grid(module, section, section_config):
                 st.session_state[cell_key] = _to_display_str(initial)
 
             # Always convert to safe string for widget value=
-            display_val = _to_display_str(st.session_state[cell_key])
+            display_val = _validated_display_value(
+                st.session_state[cell_key]
+            )
 
 
             values_by_date[record_date][field["key"]] = row[idx + 1].text_input(
@@ -129,8 +143,22 @@ def render_entry_grid(module, section, section_config):
 
 
 def _coerce_number(value):
+
+    if value is None:
+        return None
+
+    value = str(value).strip()
+
+    if value == "":
+        return None
+
     try:
         num = float(value)
-        return int(num) if num.is_integer() else num
-    except Exception:
-        return value
+
+        if num.is_integer():
+            return int(num)
+
+        return num
+
+    except ValueError:
+        raise ValueError(f"'{value}' is not numeric.")
