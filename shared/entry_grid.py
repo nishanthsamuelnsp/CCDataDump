@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import streamlit as st
 
-from shared.defaults_service import get_available_dates, get_record, save_record
+from shared.defaults_service import get_entry_window, save_record
 
 
 def _to_iso(d):
@@ -76,7 +76,7 @@ def resolve_dates(module, section, anchor_date, num_columns=3):
 
 def _initial_cell_value(module, section, record_date, field):
     if record_date:
-        existing = get_record(module, section, record_date)
+        existing = existing_records.get(record_date, {})
         if existing and field["key"] in existing:
             # Always coerce DB value to plain Python type on the way out
             return _safe_scalar(existing[field["key"]])
@@ -94,7 +94,14 @@ def render_entry_grid(module, section, section_config):
         value=st.session_state.get(grid_key, date.today()),
         key=grid_key,
     )
-    dates = resolve_dates(module, section, anchor_date)
+    window = get_entry_window(
+        module,
+        section,
+        anchor_date,
+    )
+    
+    dates = window["dates"]
+    existing_records = window["records"]
 
     st.caption("Columns show selected date and prior available-data dates.")
 
