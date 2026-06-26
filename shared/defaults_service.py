@@ -82,7 +82,7 @@ def load_records():
     return resp.data or []
 
 
-def save_record(module, section, record_date, values):
+def save_record(module, section, record_date, values, worksheet=None,):
     """
     Upsert one row into dwc_entry using (module, section, record_date).
     record_date should be a YYYY-MM-DD string.
@@ -97,6 +97,8 @@ def save_record(module, section, record_date, values):
         "values": values,
         
     }
+    if worksheet is not None:
+        payload["worksheet"] = worksheet
 
     (
         sb.table("dwc_entry")
