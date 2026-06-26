@@ -68,9 +68,10 @@ def _initial_cell_value(existing_records, record_date, field):
     if record_date:
         existing = existing_records.get(record_date, {})
 
-        if field["key"] in existing:
-            return _safe_scalar(existing[field["key"]])
-
+        values = existing.get("values", {})
+        
+        if field["key"] in values:
+            return _safe_scalar(values[field["key"]])
     return _safe_scalar(field.get("default"))
 
 
