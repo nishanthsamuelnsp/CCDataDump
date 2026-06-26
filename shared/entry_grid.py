@@ -164,6 +164,10 @@ def render_entry_grid(module, section, section_config):
                     st.error(
                         f"{field['label']} ({record_date}) must contain only numbers."
                     )
+                    st.toast(
+                        f"{field['label']} ({record_date}) must be numeric.",
+                        icon="⚠️",
+                    )
     
                     st.stop()
     
@@ -175,6 +179,10 @@ def render_entry_grid(module, section, section_config):
             )
     
         st.success(f"Saved {section_config['title']} records.")
+        st.toast(
+            f"{section_config['title']} saved successfully.",
+            icon="✅",
+        )
 
 
 def _coerce_number(value):
