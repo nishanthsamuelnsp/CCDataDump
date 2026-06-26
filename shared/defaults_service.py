@@ -115,20 +115,17 @@ def get_record(module, section, record_date):
     sb = _get_supabase()
     resp = (
         sb.table("dwc_entry")
-        .select("*")
+        .select("values")
+        .eq("module", module)
+        .eq("section", section)
         .eq("record_date", str(record_date))
+        .limit(1)
         .execute()
     )
-    
-    st.write(resp.data)
-
-#
 
     rows = resp.data or []
     
-    st.write(
-    f"record_date={record_date!r} | type={type(record_date)} | str={str(record_date)!r}"
-    )
+
     if not rows:
         return None
 
