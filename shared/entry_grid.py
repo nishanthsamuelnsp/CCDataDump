@@ -161,9 +161,9 @@ def render_entry_grid(module, section, section_config):
     
                 except ValueError:
     
-                    #st.error(
-                     #   f"{field['label']} ({record_date}) must contain only numbers."
-                    #)
+                    st.error(
+                        f"{field['label']} ({record_date}) must contain only numbers."
+                    )
                     st.toast(
                         f"{field['label']} ({record_date}) must be numeric.",
                         icon="⚠️",
@@ -178,7 +178,7 @@ def render_entry_grid(module, section, section_config):
                 cleaned,
             )
     
-       # st.success(f"Saved {section_config['title']} records.")
+        st.success(f"Saved {section_config['title']} records.")
         st.toast(
             f"{section_config['title']} saved successfully.",
             icon="✅",
