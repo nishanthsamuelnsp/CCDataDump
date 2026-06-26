@@ -141,7 +141,7 @@ def get_entry_window(module, section, anchor_date, count=3):
 
     resp = (
         sb.table("dwc_entry")
-        .select("record_date, values")
+        .select("record_date, values, worksheet")
         .eq("module", module)
         .eq("section", section)
         .lte("record_date", anchor_date)
@@ -157,7 +157,10 @@ def get_entry_window(module, section, anchor_date, count=3):
     for row in rows:
         d = row["record_date"]
         ordered_dates.append(d)
-        records[d] = row.get("values") or {}
+        records[d] = {
+            "values": row.get("values") or {},
+            "worksheet": row.get("worksheet") or {},
+        }
 
     window_dates = []
 
