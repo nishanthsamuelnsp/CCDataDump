@@ -95,7 +95,7 @@ def save_record(module, section, record_date, values):
         "section": section,
         "record_date": str(record_date),
         "values": values,
-        "updated_by": _current_user_email(),
+        
     }
 
     (
