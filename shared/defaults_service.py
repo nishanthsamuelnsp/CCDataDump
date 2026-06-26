@@ -75,7 +75,7 @@ def load_records():
     sb = _get_supabase()
     resp = (
         sb.table("dwc_entry")
-        .select("module, section, record_date, values, updated_by, created_at, updated_at")
+        .select("module, section, record_date, values")
         .order("record_date", desc=True)
         .execute()
     )
