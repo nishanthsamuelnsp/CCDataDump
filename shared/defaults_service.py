@@ -126,7 +126,10 @@ def get_record(module, section, record_date):
     )
 
     rows = resp.data or []
-    st.write(f"GET_RECORD RESULT -> {rows}")
+    
+    st.write(
+    f"record_date={record_date!r} | type={type(record_date)} | str={str(record_date)!r}"
+    )
     if not rows:
         return None
 
