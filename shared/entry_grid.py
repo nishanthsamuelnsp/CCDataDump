@@ -60,28 +60,18 @@ def get_display_label(field):
     return f"{field['label']} ({unit})" if unit else field["label"]
 
 
-def get_prior_available_dates(module, section, anchor_date, count):
-    available = get_available_dates(module, section)
-    anchor_iso = _to_iso(anchor_date)
-    return [d for d in available if d < anchor_iso][:count]
 
 
-def resolve_dates(module, section, anchor_date, num_columns=3):
-    dates = [_to_iso(anchor_date)]
-    dates.extend(get_prior_available_dates(module, section, anchor_date, num_columns - 1))
-    while len(dates) < num_columns:
-        dates.append(None)
-    return dates
 
+def _initial_cell_value(existing_records, record_date, field):
 
-def _initial_cell_value(module, section, record_date, field):
     if record_date:
         existing = existing_records.get(record_date, {})
-        if existing and field["key"] in existing:
-            # Always coerce DB value to plain Python type on the way out
+
+        if field["key"] in existing:
             return _safe_scalar(existing[field["key"]])
-    default = field.get("default")
-    return _safe_scalar(default)
+
+    return _safe_scalar(field.get("default"))
 
 
 def render_entry_grid(module, section, section_config):
@@ -123,7 +113,11 @@ def render_entry_grid(module, section, section_config):
 
             # Only fetch initial value if not already in session state
             if cell_key not in st.session_state:
-                initial = _initial_cell_value(module, section, record_date, field)
+                initial = _initial_cell_value(
+                    existing_records,
+                    record_date,
+                    field,
+                )
                 st.session_state[cell_key] = _to_display_str(initial)
 
             # Always convert to safe string for widget value=
