@@ -108,44 +108,70 @@ def save_record(module, section, record_date, values):
     )
 
 
-def get_record(module, section, record_date):
+
+
+def get_entry_window(module, section, anchor_date, count=3):
     """
-    Return the values dict for one module+section+date row, or None if missing.
+    Returns a window of editable records relative to an anchor date.
+
+    Behaviour
+    ---------
+    If anchor exists:
+        [anchor, previous, previous]
+
+    If anchor does not exist:
+        [blank anchor, previous, previous]
+
+    Returns
+    -------
+    {
+        "dates": [...],
+        "records": {
+            "YYYY-MM-DD": values_dict,
+            ...
+        }
+    }
     """
-    sb = _get_supabase()
-    resp = (
-        sb.table("dwc_entry")
-        .select("values")
-        .eq("module", module)
-        .eq("section", section)
-        .eq("record_date", str(record_date))
-        .limit(1)
-        .execute()
-    )
 
-    rows = resp.data or []
-    
-
-    if not rows:
-        return None
-
-    return rows[0].get("values")
-
-
-def get_available_dates(module, section):
-    """
-    Return available record_date values for a module+section as descending YYYY-MM-DD strings.
-    """
     sb = _get_supabase()
 
+    anchor_date = str(anchor_date)
+
     resp = (
         sb.table("dwc_entry")
-        .select("record_date")
+        .select("record_date, values")
         .eq("module", module)
         .eq("section", section)
+        .lte("record_date", anchor_date)
         .order("record_date", desc=True)
         .execute()
     )
 
     rows = resp.data or []
-    return [row["record_date"] for row in rows if row.get("record_date")]
+
+    records = {}
+    ordered_dates = []
+
+    for row in rows:
+        d = row["record_date"]
+        ordered_dates.append(d)
+        records[d] = row.get("values") or {}
+
+    window_dates = []
+
+    if ordered_dates and ordered_dates[0] == anchor_date:
+
+        window_dates = ordered_dates[:count]
+
+    else:
+
+        window_dates.append(anchor_date)
+        window_dates.extend(ordered_dates[: count - 1])
+
+    while len(window_dates) < count:
+        window_dates.append(None)
+
+    return {
+        "dates": window_dates,
+        "records": records,
+    }
