@@ -113,17 +113,16 @@ def get_record(module, section, record_date):
     Return the values dict for one module+section+date row, or None if missing.
     """
     sb = _get_supabase()
-    st.write(f"GET_RECORD -> module={module} | section={section} | record_date={record_date}")
-
     resp = (
         sb.table("dwc_entry")
-        .select("values")
-        .eq("module", module)
-        .eq("section", section)
+        .select("*")
         .eq("record_date", str(record_date))
-        .limit(1)
         .execute()
     )
+    
+    st.write(resp.data)
+
+#
 
     rows = resp.data or []
     
