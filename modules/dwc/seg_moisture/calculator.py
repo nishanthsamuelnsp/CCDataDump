@@ -15,9 +15,7 @@ import math
 # =============================================================================
 
 def _clean_numeric(values):
-    """
-    Removes blanks and converts valid entries to float.
-    """
+
     cleaned = []
 
     for value in values:
@@ -26,8 +24,16 @@ def _clean_numeric(values):
             continue
 
         try:
-            cleaned.append(float(value))
+
+            value = float(value)
+
+            if math.isnan(value):
+                continue
+
+            cleaned.append(value)
+
         except (TypeError, ValueError):
+
             continue
 
     return cleaned
@@ -115,17 +121,16 @@ def segregation_summary(vehicles):
         weighted_sum += weight * avg
 
     overall = None
-    if categories_sampled > 0:
 
-        overall = weighted_sum
+
+    if sampled_weight > 0:
+
+        overall = weighted_sum / sampled_weight
     
         if math.isnan(overall):
             overall = None
         else:
             overall = round(overall, 2)
-
-    if sampled_weight > 0:
-        overall = round(weighted_sum / sampled_weight, 2)
 
     return {
         "overall": overall,
@@ -221,8 +226,14 @@ def moisture_summary(category_weights, moisture_samples):
 
     overall = None
 
-    if categories_sampled:
-        overall = round(weighted_sum, 2)
+    if categories_sampled > 0:
+
+        overall = weighted_sum
+    
+        if math.isnan(overall):
+            overall = None
+        else:
+            overall = round(overall, 2)
 
     return {
         "overall": overall,
