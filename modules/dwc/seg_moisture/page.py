@@ -524,26 +524,26 @@ def render_seg_moisture_page():
             moisture["overall"]
         )
 
-    # ---------------------------------------------
-    # Save
-    # ---------------------------------------------
-
-    save_record(
-
-        module="dwc",
-
-        section="handling",
-
-        record_date=record_date,
-
-        values=values,
-
-        worksheet=worksheet,
-
-    )
-
-    st.success(
-        "Segregation & Moisture saved successfully."
-    )
-
-    st.rerun()
+        # ---------------------------------------------
+        # Save
+        # ---------------------------------------------
+    
+        save_record(
+    
+            module="dwc",
+    
+            section="handling",
+    
+            record_date=record_date,
+    
+            values=values,
+    
+            worksheet=worksheet,
+    
+        )
+    
+        st.success(
+            "Segregation & Moisture saved successfully."
+        )
+    
+        st.rerun()
