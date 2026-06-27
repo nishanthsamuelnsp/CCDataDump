@@ -339,6 +339,28 @@ def render_seg_moisture_page():
         use_container_width=True,
         hide_index=True,
         key=f"seg_{record_date}",
+        column_config={
+
+            "Vehicle": st.column_config.TextColumn("Vehicle"),
+    
+            "Weight": st.column_config.NumberColumn(
+                "Weight",
+                min_value=0.0,
+                step=0.01,
+                format="%.2f",
+            ),
+    
+            **{
+                f"S{i}": st.column_config.NumberColumn(
+                    f"S{i}",
+                    min_value=0.0,
+                    max_value=100.0,
+                    step=0.01,
+                    format="%.2f",
+                )
+                for i in range(1, 11)
+            },
+        },
     )
     
     seg_df = st.session_state[seg_state_key]
@@ -437,6 +459,19 @@ def render_seg_moisture_page():
             "Contribution",
         ],
         key=f"moisture_{record_date}",
+        column_config={
+
+            **{
+                f"M{i}": st.column_config.NumberColumn(
+                    f"M{i}",
+                    min_value=0.0,
+                    max_value=100.0,
+                    step=0.01,
+                    format="%.2f",
+                )
+                for i in range(1, 11)
+            },
+        },
     )
     
     moisture_df = st.session_state[
