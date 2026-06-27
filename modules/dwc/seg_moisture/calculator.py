@@ -7,6 +7,7 @@ No Supabase.
 """
 
 from statistics import mean
+import math
 
 
 # =============================================================================
@@ -114,6 +115,14 @@ def segregation_summary(vehicles):
         weighted_sum += weight * avg
 
     overall = None
+    if categories_sampled > 0:
+
+        overall = weighted_sum
+    
+        if math.isnan(overall):
+            overall = None
+        else:
+            overall = round(overall, 2)
 
     if sampled_weight > 0:
         overall = round(weighted_sum / sampled_weight, 2)
