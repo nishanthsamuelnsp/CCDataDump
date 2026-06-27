@@ -426,6 +426,7 @@ def render_seg_moisture_page():
                 worksheet
             )
         )
+    moisture_df = st.session_state[moisture_state_key]
 
     # ----------------------------------------------------------
     # Populate calculated weights
