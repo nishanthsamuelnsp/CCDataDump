@@ -180,3 +180,6 @@ def get_entry_window(module, section, anchor_date, count=3):
         "dates": window_dates,
         "records": records,
     }
+def get_supabase():
+
+    return _get_supabase()
