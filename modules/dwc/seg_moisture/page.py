@@ -494,35 +494,35 @@ def render_seg_moisture_page():
         use_container_width=True,
     ):
 
-    # ---------------------------------------------
-    # Build worksheet JSON
-    # ---------------------------------------------
-
-    worksheet = {
-
-        "segregation":
-            _seg_df_to_worksheet(
-                seg_df
-            ),
-
-        "moisture":
-            _moisture_df_to_worksheet(
-                moisture_df
-            ),
-
-    }
-
-    # ---------------------------------------------
-    # Update handling values
-    # ---------------------------------------------
-
-    values["segregation_rate"] = (
-        segregation["overall"]
-    )
-
-    values["moisture"] = (
-        moisture["overall"]
-    )
+        # ---------------------------------------------
+        # Build worksheet JSON
+        # ---------------------------------------------
+    
+        worksheet = {
+    
+            "segregation":
+                _seg_df_to_worksheet(
+                    seg_df
+                ),
+    
+            "moisture":
+                _moisture_df_to_worksheet(
+                    moisture_df
+                ),
+    
+        }
+    
+        # ---------------------------------------------
+        # Update handling values
+        # ---------------------------------------------
+    
+        values["segregation_rate"] = (
+            segregation["overall"]
+        )
+    
+        values["moisture"] = (
+            moisture["overall"]
+        )
 
     # ---------------------------------------------
     # Save
