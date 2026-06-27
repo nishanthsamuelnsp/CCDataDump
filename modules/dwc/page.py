@@ -3,6 +3,9 @@ import streamlit as st
 from modules.dwc.entry.schema import get_dwc_entry_sections
 from shared.entry_grid import render_entry_grid
 from shared.defaults_service import load_defaults, save_defaults
+from modules.dwc.seg_moisture.page import (
+    render_seg_moisture_page,
+)
 
 
 MODULE_KEY = "dwc"
@@ -12,15 +15,23 @@ def render_dwc_entry_page():
     st.subheader("DWC Data Entry")
     sections = get_dwc_entry_sections()
 
-    tab1, tab2, tab3 = st.tabs(["Dry Waste Handling", "Dry Waste Dispatch", "Edit Defaults"])
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "Dry Waste Handling",
+        "Dry Waste Dispatch",
+        "Segregation & Moisture",
+        "Edit Defaults",
+    ])
 
     with tab1:
         render_entry_grid(MODULE_KEY, "handling", sections["handling"])
 
     with tab2:
         render_entry_grid(MODULE_KEY, "dispatch", sections["dispatch"])
-
     with tab3:
+
+    render_seg_moisture_page()
+
+    with tab4:
         render_defaults_editor()
 
 
