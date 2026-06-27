@@ -111,7 +111,7 @@ def save_record(module, section, record_date, values, worksheet=None,):
 
 
 
-
+@st.cache_data(show_spinner=False)
 def get_entry_window(module, section, anchor_date, count=3):
     """
     Returns a window of editable records relative to an anchor date.
