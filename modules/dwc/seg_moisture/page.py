@@ -494,56 +494,56 @@ def render_seg_moisture_page():
         use_container_width=True,
     ):
 
-        # ---------------------------------------------
-        # Build worksheet JSON
-        # ---------------------------------------------
+    # ---------------------------------------------
+    # Build worksheet JSON
+    # ---------------------------------------------
 
-        worksheet = {
+    worksheet = {
 
-            "segregation":
-                _seg_df_to_worksheet(
-                    seg_df
-                ),
+        "segregation":
+            _seg_df_to_worksheet(
+                seg_df
+            ),
 
-            "moisture":
-                _moisture_df_to_worksheet(
-                    moisture_df
-                ),
+        "moisture":
+            _moisture_df_to_worksheet(
+                moisture_df
+            ),
 
-        }
+    }
 
-        # ---------------------------------------------
-        # Update handling values
-        # ---------------------------------------------
+    # ---------------------------------------------
+    # Update handling values
+    # ---------------------------------------------
 
-        values["segregation_rate"] = (
-            segregation["overall"]
-        )
+    values["segregation_rate"] = (
+        segregation["overall"]
+    )
 
-        values["moisture"] = (
-            moisture["overall"]
-        )
+    values["moisture"] = (
+        moisture["overall"]
+    )
 
-        # ---------------------------------------------
-        # Save
-        # ---------------------------------------------
+    # ---------------------------------------------
+    # Save
+    # ---------------------------------------------
 
-        save_record(
+    save_record(
 
-            module="dwc",
+        module="dwc",
 
-            section="handling",
+        section="handling",
 
-            record_date=record_date,
+        record_date=record_date,
 
-            values=values,
+        values=values,
 
-            worksheet=worksheet,
+        worksheet=worksheet,
 
-        )
+    )
 
-        st.success(
-            "Segregation & Moisture saved successfully."
-        )
+    st.success(
+        "Segregation & Moisture saved successfully."
+    )
 
-        st.rerun()
+    st.rerun()
