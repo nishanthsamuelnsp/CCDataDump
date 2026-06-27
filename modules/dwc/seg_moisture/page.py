@@ -4,6 +4,7 @@ import streamlit as st
 from shared.defaults_service import (
     get_entry_window,
     save_record,
+    get_supabase
 )
 
 from .schema import SEGREGATION_COLUMNS
@@ -195,20 +196,14 @@ def _moisture_df_to_worksheet(df):
 # Computed View
 # =============================================================================
 
-from supabase import create_client
 
 
-def _get_supabase():
 
-    return create_client(
-        st.secrets["SUPABASE_URL"],
-        st.secrets["SUPABASE_KEY"],
-    )
 
 
 def get_computed_row(record_date):
 
-    sb = _get_supabase()
+    sb = get_supabase()
 
     resp = (
         sb.table("dwc_computed")
