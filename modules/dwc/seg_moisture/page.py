@@ -200,7 +200,7 @@ def _moisture_df_to_worksheet(df):
 
 
 
-
+@st.cache_data(show_spinner=False)
 def get_computed_row(record_date):
 
     sb = get_supabase()
@@ -541,9 +541,11 @@ def render_seg_moisture_page():
             worksheet=worksheet,
     
         )
+        st.cache_data.clear()
     
         st.success(
             "Segregation & Moisture saved successfully."
         )
+        st.toast("Seg. and mois. save successful")
     
         st.rerun()
