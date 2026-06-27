@@ -29,7 +29,7 @@ def render_dwc_entry_page():
         render_entry_grid(MODULE_KEY, "dispatch", sections["dispatch"])
     with tab3:
 
-    render_seg_moisture_page()
+        render_seg_moisture_page()
 
     with tab4:
         render_defaults_editor()
