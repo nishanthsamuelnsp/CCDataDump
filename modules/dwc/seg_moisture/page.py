@@ -325,17 +325,23 @@ def render_seg_moisture_page():
 
     st.markdown("## Segregation")
 
-    seg_df = _worksheet_to_seg_df(
-        worksheet
-    )
+    seg_state_key = f"seg_df_{record_date}"
 
-    seg_df = st.data_editor(
-        seg_df,
+    if seg_state_key not in st.session_state:
+    
+        st.session_state[seg_state_key] = (
+            _worksheet_to_seg_df(worksheet)
+        )
+
+    st.session_state[seg_state_key] = st.data_editor(
+        st.session_state[seg_state_key],
         num_rows="dynamic",
         use_container_width=True,
         hide_index=True,
         key=f"seg_{record_date}",
     )
+    
+    seg_df = st.session_state[seg_state_key]
 
     vehicles = []
 
@@ -389,9 +395,15 @@ def render_seg_moisture_page():
 
     st.markdown("## Moisture")
 
-    moisture_df = _worksheet_to_moisture_df(
-        worksheet
-    )
+    moisture_state_key = f"moisture_df_{record_date}"
+
+    if moisture_state_key not in st.session_state:
+    
+        st.session_state[moisture_state_key] = (
+            _worksheet_to_moisture_df(
+                worksheet
+            )
+        )
 
     # ----------------------------------------------------------
     # Populate calculated weights
@@ -413,8 +425,8 @@ def render_seg_moisture_page():
             else 0
         )
 
-    moisture_df = st.data_editor(
-        moisture_df,
+    st.session_state[moisture_state_key] = st.data_editor(
+        st.session_state[moisture_state_key],
         hide_index=True,
         use_container_width=True,
         disabled=[
@@ -426,6 +438,10 @@ def render_seg_moisture_page():
         ],
         key=f"moisture_{record_date}",
     )
+    
+    moisture_df = st.session_state[
+        moisture_state_key
+    ]
 
     # ----------------------------------------------------------
     # Build calculator payload
@@ -542,6 +558,15 @@ def render_seg_moisture_page():
     
         )
         st.cache_data.clear()
+        st.session_state.pop(
+            f"seg_df_{record_date}",
+            None,
+        )
+        
+        st.session_state.pop(
+            f"moisture_df_{record_date}",
+            None,
+        )
     
         st.success(
             "Segregation & Moisture saved successfully."
