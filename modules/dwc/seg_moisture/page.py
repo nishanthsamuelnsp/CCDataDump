@@ -453,26 +453,26 @@ def render_seg_moisture_page():
     )
     for row in moisture["rows"]:
 
-    category = row["category"]
-
-    display = {
-        "plastic": "Plastic",
-        "paper_and_cardboard": "Paper & Cardboard",
-        "rubber_and_leather": "Rubber & Leather",
-        "glass_ewaste_metal": "Glass / E-waste / Metal",
-        "compostable_mixed_waste": "Compostable",
-        "inert": "Inert",
-        "incinerable": "Textiles / Sanitary",
-        "rdf": "SCF",
-    }[category]
-
-    idx = moisture_df.index[
-        moisture_df["Category"] == display
-    ][0]
-
-    moisture_df.loc[idx, "Average"] = row["average"]
-
-    moisture_df.loc[idx, "Contribution"] = row["contribution"]
+        category = row["category"]
+    
+        display = {
+            "plastic": "Plastic",
+            "paper_and_cardboard": "Paper & Cardboard",
+            "rubber_and_leather": "Rubber & Leather",
+            "glass_ewaste_metal": "Glass / E-waste / Metal",
+            "compostable_mixed_waste": "Compostable",
+            "inert": "Inert",
+            "incinerable": "Textiles / Sanitary",
+            "rdf": "SCF",
+        }[category]
+    
+        idx = moisture_df.index[
+            moisture_df["Category"] == display
+        ][0]
+    
+        moisture_df.loc[idx, "Average"] = row["average"]
+    
+        moisture_df.loc[idx, "Contribution"] = row["contribution"]
 
     st.metric(
 
