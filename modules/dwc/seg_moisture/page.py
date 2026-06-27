@@ -331,7 +331,7 @@ def render_seg_moisture_page():
 
    
     seg_df = st.data_editor(
-        st.session_state[seg_state_key],
+        seg_df,
         num_rows="dynamic",
         use_container_width=True,
         hide_index=True,
@@ -439,7 +439,7 @@ def render_seg_moisture_page():
         )
 
     moisture_df = st.data_editor(
-        st.session_state[moisture_state_key],
+        moisture_df,
         hide_index=True,
         use_container_width=True,
         disabled=[
