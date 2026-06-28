@@ -158,21 +158,16 @@ METRICS = OrderedDict({
 })
 
 @st.cache_data(show_spinner=False)
-def load_daily_history():
+def load_history(period_type: str):
 
     sb = get_supabase()
 
-    start_date = date.today() - timedelta(days=90)
-
     response = (
-        sb.table("dwc4db")
-        .select("*")
-        .gte(
-            "record_date",
-            start_date.isoformat(),
-        )
-        .order(
-            "record_date"
+        sb.rpc(
+            "get_dwc_analytics",
+            {
+                "period_type": period_type,
+            },
         )
         .execute()
     )
@@ -182,22 +177,14 @@ def load_daily_history():
     if df.empty:
         return df
 
-    df["record_date"] = pd.to_datetime(
-        df["record_date"]
-    )
-    # Expand the values JSON into columns
-    values_df = pd.json_normalize(df["metrics"])
-    
+    metrics_df = pd.json_normalize(df["metrics"])
+
     df = pd.concat(
         [
             df.drop(columns=["metrics"]),
-            values_df,
+            metrics_df,
         ],
         axis=1,
-    )
-
-    df["resorting_rate"] = (
-        df["total_productivity"] / 60
     )
 
     return df
