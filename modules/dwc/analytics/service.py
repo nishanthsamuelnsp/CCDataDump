@@ -204,12 +204,12 @@ def get_overview_dataframe(df):
     )
     
     today_rows = df[
-        df["record_date"].dt.normalize()
+        df["period_key"].dt.normalize()
         == today_date
     ]
     
     yesterday_rows = df[
-        df["record_date"].dt.normalize()
+        df["period_key"].dt.normalize()
         == yesterday_date
     ]
     
