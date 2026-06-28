@@ -201,3 +201,57 @@ def load_daily_history():
     )
 
     return df
+
+def get_overview_dataframe(df):
+
+    import pandas as pd
+
+    if df.empty:
+        return pd.DataFrame()
+
+    df = df.sort_values("record_date")
+
+    today = df.iloc[-1]
+
+    yesterday = (
+        df.iloc[-2]
+        if len(df) > 1
+        else None
+    )
+
+    rows = []
+
+    for key, meta in METRICS.items():
+
+        today_value = today.get(key)
+
+        yesterday_value = (
+            yesterday.get(key)
+            if yesterday is not None
+            else None
+        )
+
+        change = None
+
+        if (
+            yesterday_value is not None
+            and yesterday_value != 0
+            and pd.notna(yesterday_value)
+            and pd.notna(today_value)
+        ):
+
+            change = (
+                (today_value - yesterday_value)
+                / yesterday_value
+            ) * 100
+
+        rows.append(
+            {
+                "Parameter": meta["label"],
+                "Yesterday": yesterday_value,
+                "Today": today_value,
+                "Change (%)": change,
+            }
+        )
+
+    return pd.DataFrame(rows)
