@@ -185,6 +185,16 @@ def load_daily_history():
     df["record_date"] = pd.to_datetime(
         df["record_date"]
     )
+    # Expand the values JSON into columns
+    values_df = pd.json_normalize(df["values"])
+    
+    df = pd.concat(
+        [
+            df.drop(columns=["values"]),
+            values_df,
+        ],
+        axis=1,
+    )
 
     df["resorting_rate"] = (
         df["total_productivity"] / 60
