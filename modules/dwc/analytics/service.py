@@ -192,6 +192,10 @@ def load_history(period_type: str):
         ],
         axis=1,
     )
+    if "total_productivity" in df.columns:
+        df["resorting_rate"] = (
+            df["total_productivity"] / 60
+        )
 
     return df
 
