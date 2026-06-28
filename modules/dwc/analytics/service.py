@@ -209,21 +209,46 @@ def get_overview_dataframe(df):
     if df.empty:
         return pd.DataFrame()
 
-    df = df.sort_values("record_date")
+    today_date = pd.Timestamp(date.today()).normalize()
 
-    today = df.iloc[-1]
-
-    yesterday = (
-        df.iloc[-2]
-        if len(df) > 1
+    yesterday_date = (
+        today_date
+        - pd.Timedelta(days=1)
+    )
+    
+    today_rows = df[
+        df["record_date"].dt.normalize()
+        == today_date
+    ]
+    
+    yesterday_rows = df[
+        df["record_date"].dt.normalize()
+        == yesterday_date
+    ]
+    
+    today = (
+        today_rows.iloc[0]
+        if not today_rows.empty
         else None
     )
+    
+    yesterday = (
+        yesterday_rows.iloc[0]
+        if not yesterday_rows.empty
+        else None
+    )
+
+    
 
     rows = []
 
     for key, meta in METRICS.items():
 
-        today_value = today.get(key)
+        today_value = (
+            today.get(key)
+            if today is not None
+            else None
+        )
 
         yesterday_value = (
             yesterday.get(key)
@@ -245,12 +270,21 @@ def get_overview_dataframe(df):
                 / yesterday_value
             ) * 100
 
+        if change is None:
+            delta = "—"
+        elif change > 0:
+            delta = f"▲ {change:.2f}%"
+        elif change < 0:
+            delta = f"▼ {abs(change):.2f}%"
+        else:
+            delta = "0.00%"
+        
         rows.append(
             {
                 "Parameter": meta["label"],
                 "Yesterday": yesterday_value,
                 "Today": today_value,
-                "Change (%)": change,
+                "Δ": delta,
             }
         )
 
