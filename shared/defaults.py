@@ -20,6 +20,7 @@ DEFAULTS = {
                 {"key": "number_absent", "label": "Number absent", "unit": "count", "default": 0},
                 {"key": "power_outage_hours", "label": "Duration of power outages", "unit": "hrs", "default": 0},
                 {"key": "municipal_waste", "label": "Municipal waste", "unit": "kg", "default": None},
+                {"key": "other_waste", "label": "Other waste delivery", "unit": "kg", "default": None},
                 {"key": "total_workman_hours", "label": "Total Workman Hours", "unit": "hrs", "default": None},
                 {"key": "adjusted_for_variance", "label": "Adjusted for variance", "unit": "kg", "default": 0},
                 {"key": "vehicle_trips", "label": "Vehicle trips", "unit": "count", "default": 15},
