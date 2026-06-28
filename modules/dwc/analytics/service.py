@@ -186,11 +186,11 @@ def load_daily_history():
         df["record_date"]
     )
     # Expand the values JSON into columns
-    values_df = pd.json_normalize(df["values"])
+    values_df = pd.json_normalize(df["metrics"])
     
     df = pd.concat(
         [
-            df.drop(columns=["values"]),
+            df.drop(columns=["metrics"]),
             values_df,
         ],
         axis=1,
