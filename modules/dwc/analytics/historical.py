@@ -3,6 +3,7 @@ from .service import (
     load_history,
     METRICS,
 )
+from .charts import render_metric_chart
 
 def render_historical():
 
@@ -18,10 +19,25 @@ def render_historical():
         ]
     )
     with past_tab:
-        st.write("Daily graphs")
+        for key, meta in METRICS.items():
+            render_metric_chart(
+                daily_df,
+                key,
+                meta["label"],
+            )
     
     with monthly_tab:
-        st.write("Monthly graphs")
+        for key, meta in METRICS.items():
+            render_metric_chart(
+                monthly_df,
+                key,
+                meta["label"],
+            )
     
     with yearly_tab:
-        st.write("Yearly graphs")
+        for key, meta in METRICS.items():
+            render_metric_chart(
+                yearly_df,
+                key,
+                meta["label"],
+            )
