@@ -33,7 +33,7 @@ def render_metric_chart(
     baseline_df = pd.DataFrame(
         {
             "Period": chart_df["Period"],
-            "Baseline": baseline,
+            "Baseline": [baseline] * len(chart_df),
         }
     )
     
@@ -41,17 +41,18 @@ def render_metric_chart(
         alt.Chart(chart_df)
         .mark_line(point=True)
         .encode(
-            x="Period:T",
-            y=alt.Y(title, title=title),
+            x=alt.X("Period:T"),
+            y=alt.Y(f"{title}:Q", title=title),
         )
     )
     
     baseline_line = (
         alt.Chart(baseline_df)
-        .mark_rule(
-            strokeDash=[6, 4],
+        .mark_line(
+            strokeDash=[6, 6],
         )
         .encode(
+            x="Period:T",
             y="Baseline:Q",
         )
     )
