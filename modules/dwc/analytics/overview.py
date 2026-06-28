@@ -1,17 +1,19 @@
 import streamlit as st
-import pandas as pd
 
-from .service import load_daily_history, METRICS
+from .service import (
+    load_daily_history,
+    get_overview_dataframe,
+)
 
 
 def render_overview():
 
-    st.subheader("Overview")
-
     df = load_daily_history()
 
-    if df.empty:
-        st.info("No historical data available.")
-        return
+    overview = get_overview_dataframe(df)
 
-    st.write(df)
+    st.dataframe(
+        overview,
+        use_container_width=True,
+        hide_index=True,
+    )
