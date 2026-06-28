@@ -301,7 +301,7 @@ def render_seg_moisture_page():
             "Computed handling data is unavailable for this date."
         )
 
-        st.stop()
+        return
 
     category_weights = get_category_weights(
         computed
@@ -317,7 +317,7 @@ def render_seg_moisture_page():
             "Complete Dry Waste Handling before using the Segregation & Moisture calculator."
         )
 
-        st.stop()
+        return
 
     # ================================================================
     # Segregation
