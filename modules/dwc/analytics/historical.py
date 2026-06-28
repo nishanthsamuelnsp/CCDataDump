@@ -24,6 +24,7 @@ def render_historical():
                 daily_df,
                 key,
                 meta["label"],
+                meta["baseline"],
             )
     
     with monthly_tab:
@@ -32,6 +33,7 @@ def render_historical():
                 monthly_df,
                 key,
                 meta["label"],
+                meta["baseline"],
             )
     
     with yearly_tab:
@@ -40,4 +42,5 @@ def render_historical():
                 yearly_df,
                 key,
                 meta["label"],
+                meta["baseline"],
             )
