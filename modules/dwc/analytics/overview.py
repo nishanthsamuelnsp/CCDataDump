@@ -1,23 +1,17 @@
 import streamlit as st
 import pandas as pd
 
+from .service import load_daily_history, METRICS
+
 
 def render_overview():
 
     st.subheader("Overview")
 
-    # Placeholder until service.py is implemented
-    df = pd.DataFrame(
-        columns=[
-            "Parameter",
-            "Yesterday",
-            "Today",
-            "Change",
-        ]
-    )
+    df = load_daily_history()
 
-    st.dataframe(
-        df,
-        use_container_width=True,
-        hide_index=True,
-    )
+    if df.empty:
+        st.info("No historical data available.")
+        return
+
+    st.write(df)
