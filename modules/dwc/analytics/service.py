@@ -177,6 +177,12 @@ def load_history(period_type: str):
     if df.empty:
         return df
 
+    df["period_key"] = pd.to_datetime(
+        df["period_key"],
+        errors="coerce",
+    )
+
+
     metrics_df = pd.json_normalize(df["metrics"])
 
     df = pd.concat(
@@ -204,13 +210,11 @@ def get_overview_dataframe(df):
     )
     
     today_rows = df[
-        df["period_key"].dt.normalize()
-        == today_date
+        df["period_key"]== today_date
     ]
     
     yesterday_rows = df[
-        df["period_key"].dt.normalize()
-        == yesterday_date
+        df["period_key"]== yesterday_date
     ]
     
     today = (
