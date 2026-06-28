@@ -1,22 +1,23 @@
 import streamlit as st
-
-from .overview import render_overview
-from .historical import render_historical
+import pandas as pd
 
 
-def render_analytics_page():
+def render_overview():
 
-    st.header("Analytics")
+    st.subheader("Overview")
 
-    overview_tab, historical_tab = st.tabs(
-        [
-            "Overview",
-            "Historical",
+    # Placeholder until service.py is implemented
+    df = pd.DataFrame(
+        columns=[
+            "Parameter",
+            "Yesterday",
+            "Today",
+            "Change",
         ]
     )
 
-    with overview_tab:
-        render_overview()
-
-    with historical_tab:
-        render_historical()
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+    )
